@@ -192,9 +192,9 @@ class BufferedFile(ClosingContextManager):
             raise IOError("File is not open for reading")
         if (size is None) or (size < 0):
             # go for broke
-            result = self._rbuffer
+            result = [self._rbuffer]
             self._rbuffer = bytes()
-            self._pos += len(result)
+            self._pos += len(result[0])
             while True:
                 try:
                     new_data = self._read(self._DEFAULT_BUFSIZE)
@@ -202,9 +202,10 @@ class BufferedFile(ClosingContextManager):
                     new_data = None
                 if (new_data is None) or (len(new_data) == 0):
                     break
-                result += new_data
+                result.append(new_data)
                 self._realpos += len(new_data)
                 self._pos += len(new_data)
+            result = b''.join(result)
             return result
         if size <= len(self._rbuffer):
             result = self._rbuffer[:size]
@@ -227,6 +228,7 @@ class BufferedFile(ClosingContextManager):
         self._rbuffer = self._rbuffer[size:]
         self._pos += len(result)
         return result
+
 
     def readline(self, size=None):
         """
